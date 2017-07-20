@@ -20,14 +20,15 @@ function donutChart() {
 
             // creates a new pie generator
             var pie = d3.pie()
-                .value(function(d) { return floatFormat(d[variable]); })
+                .value(function(d) { 
+                    return floatFormat(d[variable]); })
                 .sort(null);
 
             // contructs and arc generator. This will be used for the donut. The difference between outer and inner
             // radius will dictate the thickness of the donut
             var arc = d3.arc()
-                .outerRadius(radius * 0.8)
-                .innerRadius(radius * 0.6)
+                .outerRadius(radius * 1)
+                .innerRadius(radius * 0.7)
                 .cornerRadius(cornerRadius)
                 .padAngle(padAngle);
 
@@ -60,7 +61,17 @@ function donutChart() {
                 .data(pie)
               .enter().append('path')
                 .attr('fill', function(d) { return colour(d.data[category]); })
-                .attr('d', arc);
+                // Animation for drawing each section
+                .transition().delay(function(d, i) { return i * 100;}).duration(1000)
+                .attrTween('d', function(d) {
+                    // console.log(d);
+                    var i = d3.interpolate(d.startAngle, d.endAngle);
+                    return function(t) {
+                        d.endAngle = i(t);
+                        return arc(d);
+                    }
+                })
+                // .attr('d', arc);
             // ===========================================================================================
 
             // ===========================================================================================
@@ -69,6 +80,8 @@ function donutChart() {
                 .data(pie)
               .enter().append('text')
                 .attr('dy', '.35em')
+                // For animation, sets initial opacity
+                .attr("fill-opacity", 0)
                 .html(function(d) {
                     // add "key: value" for given category. Number inside tspan is bolded in stylesheet.
                     return d.data[category] + ': <tspan>' + percentFormat(d.data[variable]) + '</tspan>';
@@ -77,6 +90,7 @@ function donutChart() {
 
                     // effectively computes the centre of the slice.
                     // see https://github.com/d3/d3-shape/blob/master/README.md#arc_centroid
+                    console.log(d);
                     var pos = outerArc.centroid(d);
 
                     // changes the point to be on left or right depending on where label is.
@@ -86,7 +100,10 @@ function donutChart() {
                 .style('text-anchor', function(d) {
                     // if slice centre is on the left, anchor text to start, otherwise anchor to end
                     return (midAngle(d)) < Math.PI ? 'start' : 'end';
-                });
+                })
+                // Animates opacity of lines
+              .transition().delay(function(d, i) { return i * 150;})
+              .attr("fill-opacity", 1);
             // ===========================================================================================
 
             // ===========================================================================================
@@ -95,13 +112,18 @@ function donutChart() {
                 .selectAll('polyline')
                 .data(pie)
               .enter().append('polyline')
+              // For animation, sets initial opacity
+              .style("opacity", 0) 
                 .attr('points', function(d) {
 
                     // see label transform function for explanations of these three lines.
                     var pos = outerArc.centroid(d);
                     pos[0] = radius * 0.95 * (midAngle(d) < Math.PI ? 1 : -1);
                     return [arc.centroid(d), outerArc.centroid(d), pos]
-                });
+                })
+                // Animates opacity of lines
+              .transition().delay(function(d, i) { return i * 150;})
+              .style("opacity", 0.5)
             // ===========================================================================================
 
             // ===========================================================================================
