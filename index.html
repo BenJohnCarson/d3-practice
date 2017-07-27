@@ -7,17 +7,25 @@
     <script src="https://d3js.org/d3.v4.js"></script>
     <script src="./src/data.js"></script>
     <body>
-      <div class="container">
-        <div class="row">
-          <!--<div class="col-md-12">
-            <svg class="barChart" width="960" height="500"></svg>
-            <script src="./src/barChart.js"></script>
-          </div>-->
-        </div>
+      <div class="container wrapper">
         <div class="row">
           <div class="col-md-12">
-            <svg class="lineChart" width="960" height="500"></svg>
-            <script src="./src/lineChart.js"></script>
+            <div id="chart">
+              <script src="./src/donutChart.js"></script></script>
+              <script>
+                var donut = donutChart()
+                  .width(960)
+                  .height(500)
+                  .cornerRadius(3) // sets how rounded the corners are on each slice
+                  .padAngle(0.015) // effectively dictates the gap between slices
+                  .variable('Population (mill)')
+                  .category('Country');
+                  
+                  d3.select('#chart')
+                      .datum(data) // bind data to the div
+                      .call(donut); // draw chart in div
+              </script>
+            </div>
           </div>
         </div>
       </div><!--container end-->
