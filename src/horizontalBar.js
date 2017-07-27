@@ -54,6 +54,13 @@
             .attr("x", 0)
             .attr("y", function(d) { return y(d[yAxis]); })
             .attr("height", y.bandwidth())
+            // Animation
+            .attr('width', 0)
+            .transition()
+            .duration(1000)
+            .delay(function (d, i) {
+                return i * 125;
+            })
             .attr("width", function(d) { return x(d[xAxis]); })
             .style("fill", "#2ca25f");
     }
