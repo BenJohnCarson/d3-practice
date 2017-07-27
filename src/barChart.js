@@ -1,6 +1,6 @@
 (function barChartIFFE(){
-    var svg = d3.select("svg.barChart"),
-        margin = {top: 20, right: 20, bottom: 30, left: 40},
+    var svg = d3.select("svg.vertical"),
+        margin = {top: 50, right: 50, bottom: 50, left: 50},
         width = +svg.attr("width") - margin.left - margin.right,
         height = +svg.attr("height") - margin.top - margin.bottom;
 
@@ -10,51 +10,48 @@
     var g = svg.append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-    // d3.json(data, function(d) {
-    //   d.frequency = +d.frequency;
-    //   return d;
-    // }, ----------- This sends off an XHR request, errors out due to CORS
     function drawGraph(data) {
-    // if (error) throw error;
-    data.forEach(function(d) {
-        d.frequency = +d.frequency;
-        return d;
-    });
+        const xAxis = 'Country';
+        const yAxis = 'Population (mill)';
 
-    x.domain(data.map(function(d) { return d.letter; }));
-    y.domain([0, d3.max(data, function(d) { return d.frequency; })]);
+        data.forEach(function(d) {
+            d[yAxis] = +d[yAxis];
+            return d;
+        });
 
-    g.append("g")
-        .attr("class", "axis axis--x")
-        .attr("transform", "translate(0," + height + ")")
-        .call(d3.axisBottom(x));
+        x.domain(data.map(function(d) { return d[xAxis]; }));
+        y.domain([0, d3.max(data, function(d) { return d[yAxis]; })]);
 
-    g.append("g")
-        .attr("class", "axis axis--y")
-        .call(d3.axisLeft(y).ticks(10, "%"))
-        .append("text")
-        .attr("transform", "rotate(-90)")
-        .attr("y", 6)
-        .attr("dy", "0.71em")
-        .attr("text-anchor", "end")
-        .text("Frequency");
+        g.append("g")
+            .attr("class", "x-axis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(x))
+            .append("text")
+            .attr("y", 30)
+            .attr("x", 650)
+            .attr("dy", "0.5em")
+            .style("fill", "black")
+            .text(xAxis);
 
-    g.selectAll(".bar")
-        .data(data)
-        .enter().append("rect")
-        .attr("class", "bar")
-        .attr("x", function(d) { return x(d.letter); })
-        .attr("y", function(d) { return y(d.frequency); })
-        .attr("width", x.bandwidth())
-        // Animation Start
-        .transition()
-        .duration(500)
-        .delay(function (d, i) {
-            return i * 250;
-        })
-        .attr("height", function(d) { return height - y(d.frequency); })
+        g.append("g")
+            .attr("class", "y-axis")
+            .call(d3.axisLeft(y))
+            .append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 6)
+            .attr("dy", "0.71em")
+            .attr("text-anchor", "end")
+            .text(yAxis);
 
-    };
-
-    drawGraph(barData);
+        g.selectAll(".bar")
+            .data(data)
+            .enter()
+            .append("rect")
+            .attr("class", "bar")
+            .attr("x", function(d) { return x(d[xAxis]); })
+            .attr("y", function(d) { return y(d[yAxis]); })
+            .attr("width", x.bandwidth())
+            .attr("height", function(d) { return height - y(d[yAxis]); })
+        };
+    drawGraph(data);
 })();
