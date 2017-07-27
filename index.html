@@ -5,9 +5,9 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <link rel="stylesheet" href="./public/style.css">
     <script src="https://d3js.org/d3.v4.js"></script>
-    <script src="./src/species.js"></script>
+    <script src="./src/data.js"></script>
     <body>
-      <div class="container">
+      <div class="container wrapper">
         <div class="row">
           <div class="col-md-12">
             <div id="chart">
@@ -18,11 +18,11 @@
                   .height(500)
                   .cornerRadius(3) // sets how rounded the corners are on each slice
                   .padAngle(0.015) // effectively dictates the gap between slices
-                  .variable('Probability')
-                  .category('Species');
+                  .variable('Population (mill)')
+                  .category('Country');
                   
                   d3.select('#chart')
-                      .datum(pieData) // bind data to the div
+                      .datum(data) // bind data to the div
                       .call(donut); // draw chart in div
               </script>
             </div>
