@@ -1,65 +1,97 @@
 (function lineChartIFFE(){
-    var svg = d3.select("svg.lineChart"),
+    var svg = d3.select("svg.linechart"),
         margin = {top: 20, right: 20, bottom: 30, left: 50},
         width = +svg.attr("width") - margin.left - margin.right,
         height = +svg.attr("height") - margin.top - margin.bottom,
         g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-    var parseTime = d3.timeParse("%d-%b-%y");
-
-    // var x = d3.scaleTime()
-    //     .rangeRound([0, width]);
-    var x = d3.scaleBand().rangeRound([0, width]).padding(0.1);
-
-    var y = d3.scaleLinear()
-        .rangeRound([height, 0]);
-
-    var line = d3.line()
-        .x(function(d) { return x(d.letter); })
-        .y(function(d) { return y(d.frequency); });
-
-    // d3.tsv("data.tsv", function(d) {
-    //   d.date = parseTime(d.date);
-    //   d.close = +d.close;
-    //   return d;
     function drawGraph(data) {
-    // if (error) throw error;
-    data.forEach(function(d) {
-        // d.date = parseTime(d.date);
-        // d.close = +d.close;
-        d.frequency = +d.frequency;
-        return d;
-    });
+        let xAxis = 'Country';
+        let yAxis = ['Population (mill)', "Life Expectancy"];
+        let axes = {};
 
-    // x.domain(d3.extent(data, function(d) { return d.letter; }));
-    x.domain(data.map(function(d) { return d.letter; }));
-    y.domain(d3.extent(data, function(d) { return d.frequency; }));
+        yAxis.forEach(function(y) {
+            data.forEach(function(d) {
+                d[y] = +d[y];
+                return d;
+            });
+        })
 
-    g.append("g")
-        .attr("transform", "translate(0," + height + ")")
-        .call(d3.axisBottom(x))
-        .select(".domain")
-        .remove();
+        axes = defineScales(axes);
+        axes = defineDomains(axes, xAxis, yAxis);
 
-    g.append("g")
-        .call(d3.axisLeft(y))
-        .append("text")
-        .attr("fill", "#000")
-        .attr("transform", "rotate(-90)")
-        .attr("y", 6)
-        .attr("dy", "0.71em")
-        .attr("text-anchor", "end")
-        .text("Price ($)");
+        const lines = lineData(axes, xAxis, yAxis);
+        const colour = d3.scaleOrdinal(d3.schemeCategory10);
 
-    g.append("path")
-        .datum(data)
-        .attr("fill", "none")
-        .attr("stroke", "steelblue")
-        .attr("stroke-linejoin", "round")
-        .attr("stroke-linecap", "round")
-        .attr("stroke-width", 1.5)
-        .attr("d", line);
+        g.append('g')
+            .attr('transform', 'translate(0,' + height + ')')
+            .call(d3.axisBottom(axes.x))
+            .selectAll('text')
+                .style('text-anchor', 'end')
+                .attr('dx', '-.8em')
+                .attr('dy', '.15em')
+                .attr('transform', 'rotate(-65)' );
+
+        g.append('g')
+            .call(d3.axisLeft(axes.y))
+            .append('text')
+            .attr('class', 'label-style')
+            .attr("transform", "rotate(-90)")
+            .attr("y", 6)
+            .attr("dy", ".71em")
+            .style("text-anchor", "end")
+            .text(yAxis);
+        
+        lines.forEach(function(line, i) {
+            let path = g.append('path')
+            .datum(data)
+            .attr("fill", "none")
+            .attr("stroke", colour(yAxis[i]))
+            .attr("stroke-linejoin", "round")
+            .attr("stroke-linecap", "round")
+            .attr("stroke-width", 1.5)
+            .attr("d", line);
+            animateLine(path);
+        })
     };
 
-    drawGraph(barData);
+    function defineScales(axes) {
+        axes.x = d3.scaleBand()
+            .rangeRound([0, width])
+            .padding(1);
+        axes.y = d3.scaleLinear()
+            .rangeRound([height, 0]);
+        return axes;
+    }
+
+    function defineDomains(axes, xAxis, yAxis) {
+        axes.x.domain(data.map(function(d) { return d[xAxis]; }));
+        axes.y.domain([
+            d3.min(yAxis, function(y) { return d3.min(data, function(d) { return d[y]})}),
+            d3.max(yAxis, function(y) { return d3.max(data, function(d) { return d[y]})})
+        ])
+        return axes;
+    }
+
+    function lineData(axes, xAxis, yAxis) {
+        let lines = [];
+        yAxis.forEach(function(y) {
+            let line = d3.line()
+                .x(function(d) { return axes.x(d[xAxis]); })
+                .y(function(d) { return axes.y(d[y]); });
+            lines.push(line);
+        })
+        return lines
+    }
+
+    function animateLine(path) {
+        let totalLength = path.node().getTotalLength();
+        path.attr('stroke-dasharray', totalLength + ' ' + totalLength)
+            .attr('stroke-dashoffset', totalLength)
+            .transition()
+            .duration(1500)
+            .attr('stroke-dashoffset', 0);
+    }
+
+    drawGraph(data);
 })();
